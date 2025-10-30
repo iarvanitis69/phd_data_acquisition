@@ -51,7 +51,6 @@ REF_LON = 25.682873
 MAX_EVENT_RADIUS_KM = 50
 MIN_MAG_FOR_EXTERNAL = 3.0
 
-NOA_ONLY = ["https://eida.gein.noa.gr"]
 EXTERNAL_PROVIDERS = [
     "https://eida.gein.noa.gr",
     # "https://eida.koeri.boun.edu.tr",
@@ -99,11 +98,10 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
 
         station_radius = magnitude_to_radius_linear(mag)
         event_id = f"{event_time.strftime('%Y%m%dT%H%M%S')}_{event_lat:.2f}_{event_lon:.2f}_{event_depth_km:.1f}km_M{mag:.1f}"
-
         final_dir = os.path.join(year_dir, event_id)
         info_txt_path = os.path.join(final_dir, "info.txt")
-        os.makedirs(final_dir, exist_ok=True)
 
+        # Αν έχει ήδη δεδομένα, παράλειψη
         if os.path.exists(final_dir) and any(
             fname.endswith(".mseed") for root, _, files in os.walk(final_dir) for fname in files
         ):
@@ -125,8 +123,12 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             sanitize=True
         )
 
-        temp_dir = os.path.join(final_dir, "_temp")
+        # Προσωρινός φάκελος
+        temp_dir = os.path.join(base_dir, "_temp_download")
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
         os.makedirs(temp_dir, exist_ok=True)
+
         success = False
         successful_providers = []
 
@@ -151,12 +153,16 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             except Exception as e:
                 print(f"   ⚠️ Σφάλμα από {provider}: {e}")
 
+        # ❌ Αν δεν βρέθηκαν δεδομένα — ΜΗΝ φτιάξεις καν φάκελο
         if not success:
             shutil.rmtree(temp_dir, ignore_errors=True)
-            print(f"   🚫 Καμία καταγραφή – παράλειψη")
+            print(f"   🚫 Καμία καταγραφή – δεν δημιουργείται φάκελος event.")
             continue
 
-        # Μεταφορά των .mseed στους σταθμούς
+        # ✅ Δημιουργία event folder ΜΟΝΟ τώρα
+        os.makedirs(final_dir, exist_ok=True)
+
+        # Μεταφορά mseed αρχείων στους σταθμούς
         temp_mseed = os.path.join(temp_dir, "mseed")
         for fname in os.listdir(temp_mseed):
             parts = fname.split(".")
@@ -178,9 +184,7 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
 
         shutil.rmtree(temp_dir, ignore_errors=True)
 
-        # ==============================
-        # 🔍 Εμπλουτισμένο info.txt με ερμηνεία HypoInverse
-        # ==============================
+        # Εμπλουτισμένο info.txt (όπως πριν)
         origin = ev.origins[0]
         creation = getattr(origin, "creation_info", None)
         agency = getattr(creation, "agency_id", "Unknown")
@@ -190,14 +194,12 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
         eval_status = getattr(origin, "evaluation_status", "preliminary")
         earth_model = getattr(origin, "earth_model_id", "Unknown")
 
-        # Έλεγχος για PKS, P, S κύματα
         used_phases = set()
         if hasattr(origin, "arrivals"):
             for arr in origin.arrivals:
                 if hasattr(arr, "phase") and arr.phase:
                     used_phases.add(arr.phase.upper())
 
-        # ➤ Λογική ερμηνεία μεθόδου
         if "hypoinverse" in method_id.lower():
             method_label = "HypoInverse (arrival-time method)"
         elif "hypo71" in method_id.lower():
@@ -207,7 +209,6 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
         else:
             method_label = method_id
 
-        # ➤ Περιγραφή φάσεων
         if used_phases:
             phase_list = ", ".join(sorted(used_phases))
             if "PKS" in used_phases:
@@ -218,7 +219,6 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             phase_list = "Unknown"
             phase_comment = "⚙️ No phase data reported — possibly automatic centroid solution."
 
-        # ✍️ Δημιουργία του αρχείου info.txt
         with open(info_txt_path, "w") as info:
             info.write("==== EVENT INFORMATION ====\n")
             info.write(f"Event ID: {event_id}\n")
@@ -238,7 +238,6 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             info.write(f"Used Phases: {phase_list}\n")
             info.write(f"{phase_comment}\n")
 
-            # ➤ Ανάλυση υπολογισμού επικέντρου
             info.write("\n==== INTERPRETATION ====\n")
             if "HypoInverse" in method_label or "Hypo71" in method_label:
                 info.write("Local epicenter determined via arrival-time inversion of P and S phases.\n")
