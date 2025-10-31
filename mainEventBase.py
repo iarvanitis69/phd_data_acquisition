@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Dynamic station-radius downloader for Santorini region (πολλαπλά έτη)
-----------------------------------------------------------------------
-Κατεβάζει σεισμούς από το EMSC (μόνο >4.0) και waveforms/stations από EIDA.
-Το info.txt εμπλουτίστηκε με πλήρη πληροφορία EventInfo:
-  - σύστημα/μέθοδος υπολογισμού επικέντρου
-  - agency
-  - evaluation mode/status
-  - τύπος origin, phase arrivals (P, S, PKS)
-  - και αναλυτική ερμηνεία μεθόδου (HypoInverse, Hypo71, κ.λπ.)
-"""
-
 import os
 import sys
 import shutil
@@ -19,10 +5,6 @@ from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
 from obspy.clients.fdsn.mass_downloader import MassDownloader, CircularDomain, Restrictions
 
-
-# ==========================================
-# Command-line arguments για ΕΤΟΣ_ΑΡΧΗΣ και ΕΤΟΣ_ΤΕΛΟΥΣ
-# ==========================================
 if len(sys.argv) >= 3:
     try:
         START_YEAR = int(sys.argv[1])
@@ -34,42 +16,24 @@ else:
     print("⚠️ Δεν δόθηκαν σωστά έτη. Χρήση: python main.py 2010 2012")
     sys.exit(1)
 
-print(f"🗕️ Λήψη σεισμών από {START_YEAR} έως {END_YEAR}")
-
-# ==========================================
-# BASE DIRECTORY (αποθήκευση events και κοινών stations)
-# ==========================================
 BASE_EVENTS_DIR = "/media/iarv/Samsung/Events"
-SHARED_STATION_DIR = os.path.join(BASE_EVENTS_DIR, "Stations")
-os.makedirs(SHARED_STATION_DIR, exist_ok=True)
 
-# ==========================================
-# PARAMETERS ΠΕΡΙΟΧΗΣ
-# ==========================================
-REF_LAT = 36.618712   # Σαντορίνη
+REF_LAT = 36.618712
 REF_LON = 25.682873
 MAX_EVENT_RADIUS_KM = 50
 MIN_MAG_FOR_EXTERNAL = 3.0
 
-EXTERNAL_PROVIDERS = [
-    "https://eida.gein.noa.gr",
-    # "https://eida.koeri.boun.edu.tr",
-    # "https://eida.ingv.it",
-    # "https://eida.niep.ro"
-]
-
+EXTERNAL_PROVIDERS = ["https://eida.gein.noa.gr"]
 
 def magnitude_to_radius_linear(mag):
     km_min, km_max = 10.0, 50.0
     return round(km_max / 111.19, 2)
-
 
 def get_local_events(year):
     start = UTCDateTime(f"{year}-01-01T00:00:00")
     end = UTCDateTime(f"{year}-12-31T23:59:59")
     client = Client("EMSC")
     print(f"📱 Αναζήτηση σεισμών για {year}...")
-
     events = client.get_events(
         starttime=start,
         endtime=end,
@@ -79,9 +43,7 @@ def get_local_events(year):
         minmagnitude=MIN_MAG_FOR_EXTERNAL,
         maxmagnitude=10.0
     )
-
     return sorted(events, key=lambda ev: ev.origins[0].time, reverse=True)
-
 
 def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180, channel="HH*"):
     year_dir = os.path.join(base_dir, str(year))
@@ -101,7 +63,6 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
         final_dir = os.path.join(year_dir, event_id)
         info_txt_path = os.path.join(final_dir, "info.txt")
 
-        # Αν έχει ήδη δεδομένα, παράλειψη
         if os.path.exists(final_dir) and any(
             fname.endswith(".mseed") for root, _, files in os.walk(final_dir) for fname in files
         ):
@@ -123,7 +84,6 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             sanitize=True
         )
 
-        # Προσωρινός φάκελος
         temp_dir = os.path.join(base_dir, "_temp_download")
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
@@ -153,34 +113,29 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             except Exception as e:
                 print(f"   ⚠️ Σφάλμα από {provider}: {e}")
 
-        # ❌ Αν δεν βρέθηκαν δεδομένα — ΜΗΝ φτιάξεις καν φάκελο
         if not success:
             shutil.rmtree(temp_dir, ignore_errors=True)
             print(f"   🚫 Καμία καταγραφή – δεν δημιουργείται φάκελος event.")
             continue
 
-        # ✅ Δημιουργία event folder ΜΟΝΟ τώρα
         os.makedirs(final_dir, exist_ok=True)
 
-        # Μεταφορά mseed αρχείων στους σταθμούς
         temp_mseed = os.path.join(temp_dir, "mseed")
         for fname in os.listdir(temp_mseed):
             parts = fname.split(".")
             if len(parts) >= 2:
-                network_code = parts[0]
-                station_code = parts[1]
-                net_sta = f"{network_code}.{station_code}"
+                net_sta = f"{parts[0]}.{parts[1]}"
                 station_dir = os.path.join(final_dir, net_sta)
                 os.makedirs(os.path.join(station_dir, "mseed"), exist_ok=True)
                 shutil.move(os.path.join(temp_mseed, fname), os.path.join(station_dir, "mseed", fname))
 
-        # Μεταφορά .xml στο κοινό Stations dir
+        # ✅ Αντί για shared, βάζουμε στον φάκελο του event
         temp_stations = os.path.join(temp_dir, "Stations")
+        event_station_dir = os.path.join(final_dir, "Stations")
+        os.makedirs(event_station_dir, exist_ok=True)
         for xmlfile in os.listdir(temp_stations):
             xml_src = os.path.join(temp_stations, xmlfile)
-            xml_dst = os.path.join(SHARED_STATION_DIR, xmlfile)
-            if not os.path.exists(xml_dst):
-                shutil.copy(xml_src, xml_dst)
+            shutil.move(xml_src, os.path.join(event_station_dir, xmlfile))
 
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -257,13 +212,11 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
 
     print(f"📊 Έτος {year}: {downloaded}/{total} γεγονότα")
 
-
 def main():
     for year in range(START_YEAR, END_YEAR + 1):
         events = get_local_events(year)
         download_waveforms(events, year)
     print("\n📅 Λήψη ολοκληρώθηκε.")
-
 
 if __name__ == "__main__":
     main()
