@@ -4,6 +4,9 @@ This repository contains the code for data acquisition.
 ## 🧩 Installation
 
 ### Install Miniconda on Windows/Linux
+The following procedure should be executed only once. If you already have installed Conda don't do it again
+
+
 #### Windows
 
 1. **Download the latest Miniconda installer**:  
