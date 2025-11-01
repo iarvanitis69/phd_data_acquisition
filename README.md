@@ -1,6 +1,8 @@
 # 📘 DataAcquisition Repository
 This repository contains the code for data acquisition.
 ---
+![img.png](img.png)
+
 ## 🧩 Installation
 
 ### Install Miniconda on Windows/Linux
