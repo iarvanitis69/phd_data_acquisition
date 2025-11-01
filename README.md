@@ -43,7 +43,7 @@ The following procedure should be executed only once. If you already have instal
 ```
 
 
-### 1️⃣ Clone the Repository
+### Clone the Repository
 ```bash
 git clone https://github.com/iarvanitis69/phd_data_acquisition.git
 cd phd_data_acquisition
@@ -66,7 +66,7 @@ cd phd_data_acquisition
 ```
 ---
 
-## 🚀 Event Base Execution
+## Event Base Execution
 
 ### Run the DataAcquisition Project
 ```bash
@@ -81,7 +81,7 @@ python mainEventBase.py 2010 2025
 ```
 
 ---
-## 🚀 Continuous Execution
+## Continuous Execution
 
 ### Run the DataAcquisition Project
 ```bash
