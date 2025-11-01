@@ -1,7 +1,9 @@
 # 📘 DataAcquisition Repository
 This repository contains the code for data acquisition.
 ---
-![img.png](img.png)
+
+<img src="img.png" alt="img" width="400"/>
+
 
 ## 🧩 Installation
 
