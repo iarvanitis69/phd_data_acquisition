@@ -6,7 +6,6 @@ This repository contains the code for data acquisition.
 ### Install Miniconda on Windows/Linux
 The following procedure should be executed only once. If you already have installed Conda don't do it again
 
-
 #### Windows
 
 1. **Download the latest Miniconda installer**:  
@@ -28,19 +27,20 @@ The following procedure should be executed only once. If you already have instal
 #### Linux
 
 1. Download the latest installer for Linux:
-
+```bash
    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-
+```
 2. Run the installer:
-
+```bash
    bash Miniconda3-latest-Linux-x86_64.sh
-
+```
    Follow the on-screen instructions (press Enter, accept license, choose install location, etc).
 
 3. After installation, run:
-
+```bash
    source ~/.bashrc
    conda --version
+```
 
 
 ### 1️⃣ Clone the Repository
@@ -49,12 +49,19 @@ git clone https://github.com/iarvanitis69/phd_data_acquisition.git
 cd phd_data_acquisition
 ```
 
-### Activate Basic Conda Commands
+### Activate Basic Conda Environment
+You need to activate environment only once
+
+1. Change environment 
 ```bash
-1. cd phd_data_acquisition
+cd phd_data_acquisition
+```
 2. Install Conda environment/depenndencies
-   conda env create -f environment.yml 
+```bash
+   conda env create -f environment.yml
+```` 
 3. Activate Conda environment
+```bash
    conda activate phd_cond_env
 ```
 ---
