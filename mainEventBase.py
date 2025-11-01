@@ -16,7 +16,7 @@ else:
     print("⚠️ Δεν δόθηκαν σωστά έτη. Χρήση: python main.py 2010 2012")
     sys.exit(1)
 
-BASE_EVENTS_DIR = "/media/iarv/Samsung/Events_2"
+BASE_EVENTS_DIR = "/media/iarv/Samsung/Events"
 
 REF_LAT = 36.618712
 REF_LON = 25.682873
