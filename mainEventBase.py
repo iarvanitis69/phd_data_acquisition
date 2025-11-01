@@ -16,7 +16,7 @@ else:
     print("⚠️ Δεν δόθηκαν σωστά έτη. Χρήση: python main.py 2010 2012")
     sys.exit(1)
 
-BASE_EVENTS_DIR = "/media/iarv/Samsung/Events"
+BASE_EVENTS_DIR = "/media/iarv/Samsung/Events_2"
 
 REF_LAT = 36.618712
 REF_LON = 25.682873
@@ -126,20 +126,20 @@ def download_waveforms(events, year, base_dir=BASE_EVENTS_DIR, pre=30, post=180,
             if len(parts) >= 2:
                 net_sta = f"{parts[0]}.{parts[1]}"
                 station_dir = os.path.join(final_dir, net_sta)
-                os.makedirs(os.path.join(station_dir, "mseed"), exist_ok=True)
-                shutil.move(os.path.join(temp_mseed, fname), os.path.join(station_dir, "mseed", fname))
+                os.makedirs(station_dir, exist_ok=True)
+                shutil.move(os.path.join(temp_mseed, fname), os.path.join(station_dir, fname))
 
-        # ✅ Αντί για shared, βάζουμε στον φάκελο του event
         temp_stations = os.path.join(temp_dir, "Stations")
-        event_station_dir = os.path.join(final_dir, "Stations")
-        os.makedirs(event_station_dir, exist_ok=True)
         for xmlfile in os.listdir(temp_stations):
-            xml_src = os.path.join(temp_stations, xmlfile)
-            shutil.move(xml_src, os.path.join(event_station_dir, xmlfile))
+            parts = xmlfile.split(".")
+            if len(parts) >= 2:
+                net_sta = f"{parts[0]}.{parts[1]}"
+                station_dir = os.path.join(final_dir, net_sta)
+                os.makedirs(station_dir, exist_ok=True)
+                shutil.move(os.path.join(temp_stations, xmlfile), os.path.join(station_dir, xmlfile))
 
         shutil.rmtree(temp_dir, ignore_errors=True)
 
-        # Εμπλουτισμένο info.txt (όπως πριν)
         origin = ev.origins[0]
         creation = getattr(origin, "creation_info", None)
         agency = getattr(creation, "agency_id", "Unknown")
