@@ -2,7 +2,7 @@
 This repository contains the code for data acquisition.
 ---
 
-<img src="img.png" alt="img" width="400"/>
+<img src="images/img.png" alt="img" width="400"/>
 
 
 ## 🧩 Installation
