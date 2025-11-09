@@ -112,17 +112,31 @@ The execution time is about 8 hours with downloading speed of 2 Mbps.
 
 ### Description and functionality
 
-For the data acquisition process, we employed an event-based approach using the Mass Downloader tool provided by ObsPy . This tool allows for automated downloading of waveform data and station metadata associated with specific seismic events.
-During the download procedure, the tool was configured to query an FDSN-compliant data service using a catalog of predefined earthquake events. For each individual seismic event:
+For the data acquisition process, we employed an event-based approach using the Mass Downloader tool provided by ObsPy . 
+This tool allows for automated downloading of waveform data and station metadata associated with specific seismic events.
+During the download procedure, the tool was configured to query an FDSN-compliant data service using a catalog of 
+predefined earthquake events. For each individual seismic event:
 A dedicated folder is created based on the event's origin time, coordinates, depth, and magnitude.
-An info.json file is generated, containing the event metadata (origin time, location, magnitude, etc.).
-A corresponding StationXML file is saved for each participating station, describing the full instrument response (gain, poles/zeros, location, etc.).
-These files are essential for the subsequent instrument correction and signal preprocessing steps. The use of the Mass Downloader enables a reproducible and structured way to collect waveform data and metadata in a consistent format.
+An info.json file is generated, containing the event metadata (origin time, location, magnitude, etc.). A corresponding 
+StationXML file is saved for each participating station, describing the full instrument response (gain, poles/zeros, 
+location, etc.). These files are essential for the subsequent instrument correction and signal preprocessing steps. The 
+use of the Mass Downloader enables a reproducible and structured way to collect waveform data and metadata in a 
+consistent format.
+
+## The Santorini region of our study
+We used as a reference point the center of the area of interest, located at latitude 36.618712 and longitude 25.682873.
+We defined a radius of 50 kilometers for the area of interest and collected all seismic signals from stations located 
+within this radius, for events with a magnitude greater than 3.0 Richter. The data provider used was NOAA, and the URL 
+of the provider is: "https://eida.gein.noa.gr"
+
+![img.png](images/santoriniRegion.png)
 
 #### Seismic Data Acquisition with ObsPy’s Mass Downloader
 
-For the acquisition of seismic data, we employed an event-based download strategy using the Mass Downloader provided by the ObsPy library. This tool allows structured downloading of waveform data and station metadata directly from FDSN-compliant services, based on catalogs of known earthquake events.
-During execution, the Mass Downloader creates a consistent and hierarchical folder structure:
+For the acquisition of seismic data, we employed an event-based download strategy using the Mass Downloader provided by 
+the ObsPy library. This tool allows structured downloading of waveform data and station metadata directly from 
+FDSN-compliant services, based on catalogs of known earthquake events. During execution, the Mass Downloader creates a 
+consistent and hierarchical folder structure:
 
 ![img.png](images/img.png)
 
@@ -133,7 +147,9 @@ Station subfolders: One for each seismic station involved in recording the event
 Inside each station folder:
 A .mseed file: This is the raw waveform file directly downloaded by the Mass Downloader.
 A .xml file (e.g., hlap.xml): The StationXML file containing full metadata and instrument response for the station.
-Additionally, within each event subfolder, an info.json file is generated. This file contains a detailed description of the earthquake parameters, including the origin time, latitude, longitude, depth, and magnitude of the event. It serves as a local metadata reference for each downloaded event and is crucial for subsequent processing and analysis steps.
+Additionally, within each event subfolder, an info.json file is generated. This file contains a detailed description of 
+the earthquake parameters, including the origin time, latitude, longitude, depth, and magnitude of the event. It serves 
+as a local metadata reference for each downloaded event and is crucial for subsequent processing and analysis steps.
 
 ```base
 {
